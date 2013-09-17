@@ -1,0 +1,9 @@
+*.apk
+*.ap_
+
+*.class
+
+bin/
+gen/
+
+local.properties
