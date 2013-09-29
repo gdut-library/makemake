@@ -69,6 +69,14 @@ public class MakemakeActivity extends Activity {
                                                      password.getText().toString());
                     ApiUser user = helper.login();
                     Log.d(TAG, user.name);
+
+                    ApiBook[] books = helper.getBooks();
+                    Log.d(TAG, books.length + "");
+                    books = helper.addBook("12345");
+                    Log.d(TAG, books.length + "");
+                    helper.removeBook("12345");
+                    books = helper.getBooks();
+                    Log.d(TAG, books.length + "");
                 } catch (Exception e) {
                     Log.d(TAG, e.toString());
                 }

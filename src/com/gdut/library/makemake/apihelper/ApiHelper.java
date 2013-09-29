@@ -10,6 +10,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
@@ -35,7 +37,7 @@ public class ApiHelper {
     private final int HTTP_RESPONSE_TIMEOUT = 10 * 1000;
 
     // api server url
-    private final String server = "http://192.168.1.110:9001/api";
+    private final String server = "http://beta.youknowmymind.com:1944/api";
 
     // user login
     private String USERNAME;
@@ -79,11 +81,68 @@ public class ApiHelper {
         return login();
     }
 
-    //public ApiBook[] getBooks() {}
+    public ApiBook[] getBooks()
+        throws ApiLoginActivateException, ApiLoginPasswordException,
+               ApiNotFoundException, ApiNetworkException {
+        try {
+            HttpGet request = authHeader(new HttpGet(apiUrlBuild("user/books")));
+            HttpResponse response = client.execute(request);
+            JSONArray ret = handleResponse(response).getJSONArray("books");
+            ApiBook[] books = new ApiBook[ret.length()];
 
-    //public void addBook(String ctrlno) {}
+            for (int i = 0;i < ret.length();i++) {
+                books[i] = new ApiBook(ret.getJSONObject(i));
+            }
 
-    //public void removeBook(String ctrlno) {}
+            return books;
+        } catch (IOException e) {
+            throw new ApiNetworkException();
+        } catch (JSONException e) {
+            Log.d(TAG, e.toString());
+            throw new ApiNetworkException();
+        } catch (ApiNetworkException e) {
+            throw e;
+        }
+    }
+
+    public ApiBook[] addBook(String ctrlno)
+        throws ApiLoginActivateException, ApiLoginPasswordException,
+               ApiNotFoundException, ApiNetworkException {
+        try {
+            HttpPut request = authHeader(
+                    new HttpPut(apiUrlBuild("user/books/" + ctrlno)));
+            HttpResponse response = client.execute(request);
+            JSONArray ret = handleResponse(response).getJSONArray("books");
+            ApiBook[] books = new ApiBook[ret.length()];
+
+            for (int i = 0;i < ret.length();i++) {
+                books[i] = new ApiBook(ret.getJSONObject(i));
+            }
+
+            return books;
+        } catch (IOException e) {
+            throw new ApiNetworkException();
+        } catch (JSONException e) {
+            throw new ApiNetworkException();
+        } catch (ApiNetworkException e) {
+            throw e;
+        }
+    }
+
+    public void removeBook(String ctrlno)
+        throws ApiLoginActivateException, ApiLoginPasswordException,
+               ApiNotFoundException, ApiNetworkException {
+        try {
+            HttpDelete request = authHeader(
+                    new HttpDelete(apiUrlBuild("user/books/") + ctrlno));
+            HttpResponse response = client.execute(request);
+            handleResponse(response);
+        } catch (IOException e) {
+            throw new ApiNetworkException();
+        } catch (ApiNetworkException e) {
+            throw e;
+        }
+    }
 
     /* 书籍 */
 
@@ -168,11 +227,40 @@ public class ApiHelper {
         return request;
     }
 
+    private HttpPut authHeader(HttpPut request)
+        throws ApiLoginPasswordException {
+        if (USERNAME == null || PASSWORD == null) {
+            throw new ApiLoginPasswordException();
+        }
+
+        request.setHeader(USER_HEADER, USERNAME);
+        request.setHeader(PASS_HEADER, PASSWORD);
+
+        return request;
+    }
+
+    private HttpDelete authHeader(HttpDelete request)
+        throws ApiLoginPasswordException {
+        if (USERNAME == null || PASSWORD == null) {
+            throw new ApiLoginPasswordException();
+        }
+
+        request.setHeader(USER_HEADER, USERNAME);
+        request.setHeader(PASS_HEADER, PASSWORD);
+
+        return request;
+    }
+
     private JSONObject handleResponse(HttpResponse response)
         throws ApiLoginActivateException, ApiLoginPasswordException,
                ApiNotFoundException, ApiNetworkException {
         try {
             int code = response.getStatusLine().getStatusCode();
+            if (code == 204) {
+                // no content;
+                return null;
+            }
+            
             String body = EntityUtils.toString(response.getEntity());
             JSONObject o = new JSONObject(body);
 
@@ -192,8 +280,8 @@ public class ApiHelper {
                 return o;
             }
 
+            // 其他非 200 状态
             throw new ApiNetworkException();
-
         } catch (IOException e) {
             throw new ApiNetworkException();
         } catch (JSONException e) {
