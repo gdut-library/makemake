@@ -3,6 +3,7 @@ package com.gdut.library.makemake.apihelper;
 import java.io.IOException;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 
 import org.apache.http.HttpResponse;
@@ -104,7 +105,30 @@ public class ApiHelper {
         }
     }
 
-    //public ApiBook[] searchBooks(String keyword) {}
+    public ApiBook[] searchBooks(String keyword)
+        throws ApiNotFoundException, ApiNetworkException {
+        try {
+            // TODO better query parameters builder
+            HttpGet request = new HttpGet(apiUrlBuild("book/search?q=" + keyword));
+            HttpResponse response = client.execute(request);
+            JSONArray ret = handleResponse(response).getJSONArray("books");
+            ApiBook[] books = new ApiBook[ret.length()];
+
+            for (int i = 0;i < ret.length();i++) {
+                books[i] = new ApiBook(ret.getJSONObject(i));
+            }
+
+            return books;
+        } catch (IOException e) {
+            throw new ApiNetworkException();
+        } catch (JSONException e) {
+            throw new ApiNetworkException();
+        } catch (ApiNotFoundException e) {
+            throw e;
+        } catch (ApiLoginException e) {
+            throw new ApiNetworkException();
+        }
+    }
 
     private void clientSetup() {
         HttpParams params = new BasicHttpParams();

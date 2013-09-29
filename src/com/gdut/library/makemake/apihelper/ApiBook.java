@@ -22,7 +22,7 @@ public class ApiBook {
         try {
             name = infos.getString("name");
             ctrlno = infos.getString("ctrlno");
-            isbn = infos.getString("isbn");
+            isbn = infos.optString("isbn");
             author = infos.optString("author");
             publisher = infos.optString("publisher");
             available = infos.optInt("available");
