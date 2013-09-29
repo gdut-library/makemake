@@ -1,6 +1,7 @@
 package com.gdut.library.makemake.apihelper;
 
 import java.io.IOException;
+import android.util.Log;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -18,8 +19,6 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
-import android.util.Log;
-
 import com.gdut.library.makemake.apihelper.ApiUser;
 import com.gdut.library.makemake.apihelper.ApiBook;
 import com.gdut.library.makemake.apihelper.ApiNotFoundException;
@@ -29,6 +28,9 @@ import com.gdut.library.makemake.apihelper.ApiLoginActivateException;
 import com.gdut.library.makemake.apihelper.ApiLoginPasswordException;
 
 
+/**
+ * 提供 api 调用的接口
+ */
 public class ApiHelper {
     private final String TAG = "API_HELPER";
 
@@ -36,19 +38,41 @@ public class ApiHelper {
     private final int HTTP_CONNECTION_TIMEOUT = 10 * 1000;
     private final int HTTP_RESPONSE_TIMEOUT = 10 * 1000;
 
-    // api server url
+    // api 服务器地址
     private final String server = "http://beta.youknowmymind.com:1944/api";
 
-    // user login
+    // 用户登录相关信息
     private String USERNAME;
     private String PASSWORD;
     private final String USER_HEADER = "X-LIBRARY-USERNAME";
     private final String PASS_HEADER = "X-LIBRARY-PASSWORD";
 
+    /**
+     * 默认调用，可访问
+     *
+     * - `书籍信息`
+     * - `查询书籍`
+     *
+     * 接口
+     */
     public ApiHelper() {
         clientSetup();
     }
 
+    /**
+     * 带用户权限调用，可访问
+     *
+     * - `用户登录`
+     * - `用户信息`
+     * - `用户书单`
+     * - `书籍信息`
+     * - `查询书籍`
+     *
+     * 接口
+     *
+     * @param username 登录用户名
+     * @param password 登录密码
+     */
     public ApiHelper(String username, String password) {
         clientSetup();
 
@@ -58,9 +82,17 @@ public class ApiHelper {
 
     /* 用户 */
 
+    /**
+     * 用户登录接口
+     *
+     * @return `ApiUser` 用户信息
+     * @throws `ApiLoginActivateException` 用户需要激活
+     * @throws `ApiLoginPasswordException` 用户密码错误
+     * @throws `ApiNetworkException` 网络错误
+     */
     public ApiUser login()
         throws ApiLoginActivateException, ApiLoginPasswordException,
-               ApiNotFoundException, ApiNetworkException {
+               ApiNetworkException {
         try {
             HttpPost request = authHeader(new HttpPost(apiUrlBuild("user/login")));
             HttpResponse response = client.execute(request);
@@ -75,15 +107,31 @@ public class ApiHelper {
         }
     }
 
+    /**
+     * 用户信息接口
+     *
+     * @return `ApiUser` 用户信息
+     * @throws `ApiLoginActivateException` 用户需要激活
+     * @throws `ApiLoginPasswordException` 用户密码错误
+     * @throws `ApiNetworkException` 网络错误
+     */
     public ApiUser me()
         throws ApiLoginActivateException, ApiLoginPasswordException,
-               ApiNotFoundException, ApiNetworkException {
+               ApiNetworkException {
         return login();
     }
 
+    /**
+     * 获取用户借书单接口
+     *
+     * @return `ApiBook[]` 用户借书单列表
+     * @throws `ApiLoginActivateException` 用户需要激活
+     * @throws `ApiLoginPasswordException` 用户密码错误
+     * @throws `ApiNetworkException` 网络错误
+     */
     public ApiBook[] getBooks()
         throws ApiLoginActivateException, ApiLoginPasswordException,
-               ApiNotFoundException, ApiNetworkException {
+               ApiNetworkException {
         try {
             HttpGet request = authHeader(new HttpGet(apiUrlBuild("user/books")));
             HttpResponse response = client.execute(request);
@@ -105,6 +153,16 @@ public class ApiHelper {
         }
     }
 
+    /**
+     * 用户借书单添加书籍接口
+     *
+     * @param ctrlno 书籍控制号
+     * @return `ApiBook[]` 用户借书单列表
+     * @throws `ApiLoginActivateException` 用户需要激活
+     * @throws `ApiLoginPasswordException` 用户密码错误
+     * @throws `ApiNotFoundException` 添加书籍不存在
+     * @throws `ApiNetworkException` 网络错误
+     */
     public ApiBook[] addBook(String ctrlno)
         throws ApiLoginActivateException, ApiLoginPasswordException,
                ApiNotFoundException, ApiNetworkException {
@@ -129,6 +187,15 @@ public class ApiHelper {
         }
     }
 
+    /**
+     * 用户借书单移除书籍接口
+     *
+     * @param ctrlno 书籍控制号
+     * @throws `ApiLoginActivateException` 用户需要激活
+     * @throws `ApiLoginPasswordException` 用户密码错误
+     * @throws `ApiNotFoundException` 移除书籍不存在
+     * @throws `ApiNetworkException` 网络错误
+     */
     public void removeBook(String ctrlno)
         throws ApiLoginActivateException, ApiLoginPasswordException,
                ApiNotFoundException, ApiNetworkException {
@@ -146,6 +213,14 @@ public class ApiHelper {
 
     /* 书籍 */
 
+    /**
+     * 根据控制号获取书籍信息接口
+     *
+     * @param ctrlno 书籍控制号
+     * @return `ApiBook` 书籍信息
+     * @throws `ApiNotFoundException` 请求书籍不存在
+     * @throws `ApiNetworkException` 网络错误
+     */
     public ApiBook getBookByCtrlno(String ctrlno)
         throws ApiNotFoundException, ApiNetworkException {
         try {
@@ -164,6 +239,14 @@ public class ApiHelper {
         }
     }
 
+    /**
+     * 根据任意关键字查询书籍接口
+     *
+     * @param keyword 关键字
+     * @return `ApiBook[]` 书籍信息列表
+     * @throws `ApiNotFoundException` 请求书籍不存在
+     * @throws `ApiNetworkException` 网络错误
+     */
     public ApiBook[] searchBooks(String keyword)
         throws ApiNotFoundException, ApiNetworkException {
         try {
@@ -189,7 +272,11 @@ public class ApiHelper {
         }
     }
 
+    /**
+     * 初始化 http client
+     */
     private void clientSetup() {
+        // 设置超时
         HttpParams params = new BasicHttpParams();
         HttpConnectionParams.setConnectionTimeout(params,
                 HTTP_CONNECTION_TIMEOUT);
@@ -202,11 +289,17 @@ public class ApiHelper {
         return server + '/' + namespace;
     }
 
-    // TODO use duck type
+    /**
+     * 向请求加入验证头字段
+     *
+     * @param request 请求
+     * @return request 请求
+     * @throws `ApiLoginPasswordException` 用户名密码不能为空
+     */
     private HttpPost authHeader(HttpPost request)
         throws ApiLoginPasswordException {
         if (USERNAME == null || PASSWORD == null) {
-            throw new ApiLoginPasswordException();
+            throw new ApiLoginPasswordException("用户名和密码不能为空");
         }
 
         request.setHeader(USER_HEADER, USERNAME);
@@ -251,13 +344,23 @@ public class ApiHelper {
         return request;
     }
 
+    /**
+     * 对响应进行处理
+     *
+     * @param response 响应
+     * @return `JSONObject` 对象
+     * @throws `ApiLoginActivateException` 用户需要激活
+     * @throws `ApiLoginPasswordException` 用户密码错误
+     * @throws `ApiNotFoundException` 书籍不存在
+     * @throws `ApiNetworkException` 网络错误
+     */
     private JSONObject handleResponse(HttpResponse response)
         throws ApiLoginActivateException, ApiLoginPasswordException,
                ApiNotFoundException, ApiNetworkException {
         try {
             int code = response.getStatusLine().getStatusCode();
             if (code == 204) {
-                // no content;
+                // no content 直接返回;
                 return null;
             }
             
@@ -265,6 +368,8 @@ public class ApiHelper {
             JSONObject o = new JSONObject(body);
 
             if (code == 403) {
+                // 用户鉴权错误
+                // TODO 测试其他情况
                 if (o.has("next")) {
                     throw new ApiLoginActivateException(o.getString("next"));
                 }
@@ -276,7 +381,7 @@ public class ApiHelper {
             }
 
             if (code / 100 == 2) {
-                // 2xx
+                // 2xx 成功状态
                 return o;
             }
 

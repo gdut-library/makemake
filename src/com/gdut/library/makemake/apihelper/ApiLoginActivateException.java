@@ -3,9 +3,13 @@ package com.gdut.library.makemake.apihelper;
 import com.gdut.library.makemake.apihelper.ApiLoginException;
 
 
+/**
+ * 帐户未激活异常
+ */
 class ApiLoginActivateException extends ApiLoginException {
+
+    // 帐户激活地址
     public String next;
-    public String reason;
 
     ApiLoginActivateException(String n) {
         reason = "帐户需要激活";

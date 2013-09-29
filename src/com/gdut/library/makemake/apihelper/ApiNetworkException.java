@@ -1,6 +1,9 @@
 package com.gdut.library.makemake.apihelper;
 
 
+/**
+ * 网络异常
+ */
 class ApiNetworkException extends Exception {
     public String reason;
 
