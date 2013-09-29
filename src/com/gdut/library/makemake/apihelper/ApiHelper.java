@@ -21,6 +21,7 @@ import com.gdut.library.makemake.apihelper.ApiUser;
 import com.gdut.library.makemake.apihelper.ApiBook;
 import com.gdut.library.makemake.apihelper.ApiNotFoundException;
 import com.gdut.library.makemake.apihelper.ApiNetworkException;
+import com.gdut.library.makemake.apihelper.ApiLoginException;
 import com.gdut.library.makemake.apihelper.ApiLoginActivateException;
 import com.gdut.library.makemake.apihelper.ApiLoginPasswordException;
 
@@ -66,12 +67,6 @@ public class ApiHelper {
             throw new ApiNetworkException();
         } catch (JSONException e) {
             throw new ApiNetworkException();
-        } catch (ApiLoginActivateException e) {
-            throw e;
-        } catch (ApiLoginPasswordException e) {
-            throw e;
-        } catch (ApiNotFoundException e) {
-            throw e;
         } catch (ApiNetworkException e) {
             throw e;
         }
@@ -103,10 +98,8 @@ public class ApiHelper {
         } catch (JSONException e) {
             throw new ApiNetworkException();
         } catch (ApiNotFoundException e) {
-            throw new ApiNotFoundException();
-        } catch (ApiLoginPasswordException e) {
-            throw new ApiNetworkException();
-        } catch (ApiLoginActivateException e) {
+            throw e;
+        } catch (ApiLoginException e) {
             throw new ApiNetworkException();
         }
     }
