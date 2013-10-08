@@ -10,4 +10,8 @@ class ApiLoginPasswordException extends ApiLoginException {
     ApiLoginPasswordException() {
         reason = "密码错误";
     }
+
+    ApiLoginPasswordException(String r) {
+        reason = r;
+    }
 }
