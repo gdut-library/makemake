@@ -1,6 +1,7 @@
 package com.gdut.library.makemake.apihelper;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -18,6 +19,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
+import java.net.URLEncoder;
 
 import com.gdut.library.makemake.apihelper.ApiUser;
 import com.gdut.library.makemake.apihelper.ApiBook;
@@ -251,7 +253,9 @@ public class ApiHelper {
         throws ApiNotFoundException, ApiNetworkException {
         try {
             // TODO better query parameters builder
-            HttpGet request = new HttpGet(apiUrlBuild("book/search?q=" + keyword));
+            // TODO fix parameters encoding
+            HttpGet request = new HttpGet(apiUrlBuild("book/search?q=" +
+                        encodeParameters(keyword)));
             HttpResponse response = client.execute(request);
             JSONArray ret = handleResponse(response).getJSONArray("books");
             ApiBook[] books = new ApiBook[ret.length()];
@@ -285,8 +289,25 @@ public class ApiHelper {
         client = new DefaultHttpClient(params);
     }
 
+    /**
+     * 构建 api url
+     *
+     * TODO 使用 Uri 来构建
+     * ref: http://stackoverflow.com/questions/3286067/url-encoding-in-android
+     *
+     * @param namespace 请求部分
+     * @return api url
+     */
     private String apiUrlBuild(String namespace) {
         return server + '/' + namespace;
+    }
+
+    private String encodeParameters(String raw) {
+        try {
+            return URLEncoder.encode(raw, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            return raw;
+        }
     }
 
     /**
