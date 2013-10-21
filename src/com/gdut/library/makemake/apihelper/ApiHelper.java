@@ -37,8 +37,8 @@ public class ApiHelper {
     private final String TAG = "API_HELPER";
 
     private HttpClient client;
-    private final int HTTP_CONNECTION_TIMEOUT = 10 * 1000;
-    private final int HTTP_RESPONSE_TIMEOUT = 10 * 1000;
+    private final int HTTP_CONNECTION_TIMEOUT = 20 * 1000;
+    private final int HTTP_RESPONSE_TIMEOUT = 20 * 1000;
 
     // api 服务器地址
     private final String server = "http://beta.youknowmymind.com:1944/api";
